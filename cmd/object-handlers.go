@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -292,6 +293,27 @@ func (api objectAPIHandlers) SelectObjectContentHandler(w http.ResponseWriter, r
 	})
 }
 
+var (
+	//BAREOS-TEST
+	currentObject        string = ""
+	doObjectMissingError bool   = false
+	missingObjects              = map[string]int{
+		"data_14":  0,
+		"data_20":  0,
+		"data_30":  0,
+		"data_40":  0,
+		"data_41":  0,
+		"data_42":  0,
+		"data_43":  0,
+		"data_50":  0,
+		"data_51":  0,
+		"data_52":  0,
+		"data_150": 0,
+		"data_151": 0,
+		"data_152": 0,
+	}
+)
+
 // GetObjectHandler - GET Object
 // ----------
 // This implementation of the GET operation retrieves object. To use GET,
@@ -317,6 +339,7 @@ func (api objectAPIHandlers) GetObjectHandler(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	bucket := vars["bucket"]
 	object, err := url.PathUnescape(vars["object"])
+
 	if err != nil {
 		writeErrorResponse(ctx, w, toAPIError(ctx, err), r.URL, guessIsBrowserReq(r))
 		return
@@ -413,6 +436,15 @@ func (api objectAPIHandlers) GetObjectHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	gr, err := getObjectNInfo(ctx, bucket, object, rs, r.Header, readLock, opts)
+
+	currentObject = gr.ObjInfo.Name
+	if doObjectMissingError {
+		if _, ok := missingObjects[gr.ObjInfo.Name]; ok {
+			err = errors.New("Test doObjectMissingError")
+			object = ""
+		}
+	}
+
 	if err != nil {
 		if isErrPreconditionFailed(err) {
 			return

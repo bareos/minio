@@ -11,11 +11,13 @@ Objects in the buckets should have specific names, and should have specific size
 
 Therefore prepare bucket objects similar to this:
 
+```sh
 for num in $(seq 1 100); do dd if=/dev/random of=/dev/data_${num} bs=512 count=1; done
 for num in $(seq 101 200); do dd if=/dev/random of=/dev/data_${num} bs=512 count=512; done
 for num in $(seq 300 301); do dd if=/dev/random of=/dev/data_${num} bs=512 count=512000; done
 
 s3cmd -c s3cfg sync . S3://bareos-test
+```
 
 ```sh
 # File s3cfg

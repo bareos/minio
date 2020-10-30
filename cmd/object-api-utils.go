@@ -765,9 +765,36 @@ func (g *GetObjectReader) Close() error {
 	return nil
 }
 
+var (
+	//BAREOS-TEST
+	doTruncateErrors bool = false
+	truncatedObjects      = map[string]int{
+		"data_15":  0,
+		"data_21":  0,
+		"data_31":  0,
+		"data_44":  0,
+		"data_45":  0,
+		"data_46":  0,
+		"data_47":  0,
+		"data_53":  0,
+		"data_54":  0,
+		"data_55":  0,
+		"data_153": 0,
+		"data_154": 0,
+		"data_155": 0,
+		"data_301": 0,
+	}
+)
+
 // Read - to implement Reader interface.
 func (g *GetObjectReader) Read(p []byte) (n int, err error) {
 	n, err = g.pReader.Read(p)
+	if doTruncateErrors {
+		if _, ok := truncatedObjects[currentObject]; ok {
+			n = 100
+			err = io.EOF
+		}
+	}
 	if err != nil {
 		// Calling code may not Close() in case of error, so
 		// we ensure it.
