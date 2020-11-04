@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -297,6 +298,7 @@ var (
 	//BAREOS-TEST
 	currentObject        string = ""
 	doObjectMissingError bool   = false
+	testObjectCounter           = 0
 	missingObjects              = map[string]int{
 		"data_14":  0,
 		"data_20":  0,
@@ -438,10 +440,14 @@ func (api objectAPIHandlers) GetObjectHandler(w http.ResponseWriter, r *http.Req
 	gr, err := getObjectNInfo(ctx, bucket, object, rs, r.Header, readLock, opts)
 
 	currentObject = gr.ObjInfo.Name
+	testObjectCounter++
+	fmt.Println("COUNTER:", testObjectCounter, ":", currentObject)
+
 	if doObjectMissingError {
 		if _, ok := missingObjects[gr.ObjInfo.Name]; ok {
 			err = errors.New("Test doObjectMissingError")
 			object = ""
+			fmt.Println("COUNTER:", testObjectCounter, ":", currentObject, " canceled")
 		}
 	}
 
